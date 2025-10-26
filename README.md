@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+✅ README.md — Sistema de Eventos Bancarios (Kafka + Next.js)
+Sistema de Eventos Bancarios
+Trabajo Práctico Final – Programación Avanzada
 
-## Getting Started
+Autor: Luca Saboredo – UADER – 2025
 
-First, run the development server:
+📌 Introducción
 
-```bash
+Este proyecto implementa un sistema de transacciones bancarias en tiempo real, utilizando una arquitectura event-driven basada en Kafka.
+
+Cuando un usuario inicia una transacción desde la aplicación web, el backend publica un evento en Kafka.
+Un Orchestrator consume ese evento, ejecuta la lógica de negocio (reserva de fondos, detección de fraude, confirmación o reversión), y produce nuevos eventos que se transmiten en vivo al cliente mediante Server-Sent Events (SSE).
+
+✅ Esto permite ver paso a paso la evolución de una transacción bancaria en tiempo real.
+
+🎯 Objetivos del Proyecto
+
+✔ Aplicar arquitectura de eventos
+✔ Procesamiento distribuido con Kafka
+✔ Comunicación asíncrona
+✔ Streaming real-time hacia el navegador
+✔ Orquestación de casos de negocio bancarios
+
+🧩 Tecnologías utilizadas
+Componente	Tecnología
+Frontend	Next.js 16 + React + TailwindCSS
+Mensajería / Streaming	Apache Kafka (modo standalone en Docker)
+Backend Orquestación	Node.js + KafkaJS
+Protocolos	REST + SSE
+Infraestructura local	Docker Compose
+
+🔄 Flujo de Eventos (Arquitectura)
+flowchart LR
+    A[Cliente Web] -->|POST /transactions| B(API Next.js)
+    B -->|produce TransactionInitiated| C[Kafka topic: txn.commands]
+    C -->|consume| D[Orchestrator]
+    D -->|produce varios eventos| E[Kafka topic: txn.events]
+    E -->|SSE real-time| A
+
+
+🧪 Lógica de negocio simulada
+
+El Orchestrator decide si la operación es aprobada o rechazada según probabilidad de fraude ficticia:
+
+Riesgo	Resultado
+Bajo	Committed
+Alto	Reversed
+
+Simulación totalmente controlada para demo.
+
+🚀 Cómo ejecutar el proyecto
+
+✅ 1️⃣ Instalar dependencias
+npm install
+
+✅ 2️⃣ Levantar Kafka con Docker
+
+Desde la carpeta my-app:
+
+docker compose -f docker/docker-compose.yml up -d
+
+Confirmar que Kafka está corriendo:
+
+docker ps
+
+Debe aparecer un container llamado kafka.
+
+✅ 3️⃣ Ejecutar el Orchestrator (Kafka consumer/producer)
+npm run orchestrator
+
+Si todo está OK verás logs como:
+
+Orchestrator ready. Waiting for commands…
+[RECV] TransactionInitiated txn=...
+[EMIT] FundsReserved …
+[EMIT] FraudChecked …
+...
+
+✅ 4️⃣ Ejecutar la aplicación web
+
+En otra terminal:
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir 👉 http://localhost:3000/
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+✅ Completar formulario
+✅ Click en Iniciar transacción
+✅ Timeline derecho se actualiza en tiempo real 🎯
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+📍Formulario izquierda – Nueva transacción
+📍Timeline derecha – Eventos Kafka en streaming
 
-## Learn More
+📌 Colocar 2 o 3 capturas que ya tenés donde se muestra todo funcionando
 
-To learn more about Next.js, take a look at the following resources:
+✅ Conclusiones
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+✔ Se realizó con éxito una arquitectura distribuida real
+✔ Comunicación event-driven mediante Kafka
+✔ Streaming de actualizaciones con SSE sin necesidad de WebSockets
+✔ UI intuitiva que permite observar los procesos bancarios en tiempo real
+✔ Aprobación/reversión automática basada en análisis de fraude
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+✅ Autor
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Luca Saboredo
+Ingeniería en Sistemas – UADER
+2025
