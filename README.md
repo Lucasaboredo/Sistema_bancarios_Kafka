@@ -104,5 +104,5 @@ Abrir 👉 http://localhost:3000/
 ✅ Autor
 
 Luca Saboredo
-Ingeniería en Sistemas – UADER
+Licenciatura en Sistemas – UADER
 2025
