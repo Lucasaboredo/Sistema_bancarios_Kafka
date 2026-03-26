@@ -1,108 +1,139 @@
-✅ README.md — Sistema de Eventos Bancarios (Kafka + Next.js)
-Sistema de Eventos Bancarios
+# 🏦 Sistema de Eventos Bancarios (Kafka + Next.js)
+
 Trabajo Práctico Final – Programación Avanzada
 
-Autor: Luca Saboredo – UADER – 2025
+**Autor:** Luca Saboredo – UADER – 2025
 
-📌 Introducción
+---
 
-Este proyecto implementa un sistema de transacciones bancarias en tiempo real, utilizando una arquitectura event-driven basada en Kafka.
+## 📌 Introducción
 
-Cuando un usuario inicia una transacción desde la aplicación web, el backend publica un evento en Kafka.
-Un Orchestrator consume ese evento, ejecuta la lógica de negocio (reserva de fondos, detección de fraude, confirmación o reversión), y produce nuevos eventos que se transmiten en vivo al cliente mediante Server-Sent Events (SSE).
+¡Hola! Soy **Luca Saboredo** y este es mi proyecto final para la materia **Programación Avanzada** (Licenciatura en Sistemas, UADER). 
 
-✅ Esto permite ver paso a paso la evolución de una transacción bancaria en tiempo real.
+Para este TP, decidí construir un **sistema de transacciones bancarias en tiempo real**, basándome en una **arquitectura orientada a eventos (Event-Driven Architecture)** utilizando **Apache Kafka**.
 
-🎯 Objetivos del Proyecto
+El flujo que implementé funciona así:
+1. Cuando un usuario inicia una transacción desde mi aplicación web, el backend publica inmediatamente un evento en Kafka.
+2. Desarrollé un **Orchestrator** (consumidor de Kafka) que se encarga de procesar ese evento. Este evalúa la lógica de negocio (como reservar fondos, detectar un posible fraude, y confirmar o revertir la operación), y luego genera y produce nuevos eventos.
+3. Estos últimos eventos son transmitidos en vivo al cliente a través de **Server-Sent Events (SSE)**.
 
-✔ Aplicar arquitectura de eventos
-✔ Procesamiento distribuido con Kafka
-✔ Comunicación asíncrona
-✔ Streaming real-time hacia el navegador
-✔ Orquestación de casos de negocio bancarios
+✅ El resultado es que logré que cualquier persona pueda ver, paso a paso, cómo evoluciona una transacción bancaria en tiempo real desde el navegador.
 
-🧩 Tecnologías utilizadas
-Componente	Tecnología
-Frontend	Next.js 16 + React + TailwindCSS
-Mensajería / Streaming	Apache Kafka (modo standalone en Docker)
-Backend Orquestación	Node.js + KafkaJS
-Protocolos	REST + SSE
-Infraestructura local	Docker Compose
+## 🎯 Mis Objetivos con este Proyecto
 
-🔄 Flujo de Eventos (Arquitectura)
+✔ **Aplicar arquitectura de eventos** en un entorno realista.
+✔ Manejar **procesamiento distribuido** y encolado de mensajes usando Kafka.
+✔ Implementar **comunicación asíncrona** entre microservicios/módulos.
+✔ Lograr **streaming real-time** hacia el navegador sin usar WebSockets, optando por SSE.
+✔ Construir un **orquestador** que determine el flujo de casos de negocio bancarios.
+
+## 🧩 Tecnologías que elegí utilizar
+
+| Componente | Tecnología que implementé |
+| --- | --- |
+| **Frontend** | Next.js 16 + React + TailwindCSS |
+| **Mensajería / Streaming** | Apache Kafka (corriendo en modo standalone en Docker) |
+| **Backend Orquestación** | Node.js + KafkaJS |
+| **Protocolos** | REST híbrido + SSE (Server-Sent Events) |
+| **Infraestructura local** | Docker Compose |
+
+## 🔄 Flujo de Eventos (La Arquitectura que diseñé)
+
+```mermaid
 flowchart LR
     A[Cliente Web] -->|POST /transactions| B(API Next.js)
     B -->|produce TransactionInitiated| C[Kafka topic: txn.commands]
-    C -->|consume| D[Orchestrator]
+    C -->|consume| D[Mi Orchestrator]
     D -->|produce varios eventos| E[Kafka topic: txn.events]
     E -->|SSE real-time| A
+```
 
+## 🧪 Lógica de negocio simulada
 
-🧪 Lógica de negocio simulada
+Para que el proyecto se pueda probar fácilmente, programé el Orchestrator de forma que decida si la operación es aprobada o rechazada en base a una probabilidad de fraude ficticia:
 
-El Orchestrator decide si la operación es aprobada o rechazada según probabilidad de fraude ficticia:
+| Riesgo de Fraude | Resultado |
+| :--- | :--- |
+| **Bajo** | Transacción Aprobada (`Committed`) |
+| **Alto** | Transacción Rechazada (`Reversed`) |
 
-Riesgo	Resultado
-Bajo	Committed
-Alto	Reversed
+Es una simulación totalmente controlada para fines demostrativos.
 
-Simulación totalmente controlada para demo.
+## 🚀 Cómo ejecutar mi proyecto
 
-🚀 Cómo ejecutar el proyecto
+Si querés probar mi proyecto en tu entorno local, estos son los pasos a seguir:
 
-✅ 1️⃣ Instalar dependencias
+**1️⃣ Instalar las dependencias**
+
+```bash
 npm install
+```
 
-✅ 2️⃣ Levantar Kafka con Docker
+**2️⃣ Levantar Kafka con Docker**
 
-Desde la carpeta my-app:
+Yo armé un archivo `docker-compose.yml` en la carpeta `docker`. Para iniciarlo, corré:
 
+```bash
 docker compose -f docker/docker-compose.yml up -d
+```
 
-Confirmar que Kafka está corriendo:
-
+Para asegurarte de que levantó bien mi contenedor de Kafka:
+```bash
 docker ps
+```
+*(Deberías ver un contenedor llamado `kafka` en ejecución).*
 
-Debe aparecer un container llamado kafka.
+**3️⃣ Inicializar Tópicos**
 
-✅ 3️⃣ Ejecutar el Orchestrator (Kafka consumer/producer)
+Si querés asegurarte de que los topics de Kafka existen, ejecutá:
+```bash
+npm run topics:init
+```
+
+**4️⃣ Ejecutar el Orchestrator (Mi consumidor/productor de Kafka)**
+
+En una terminal, iniciá el proceso de background:
+```bash
 npm run orchestrator
+```
 
-Si todo está OK verás logs como:
-
+Si todo conecta bien con Kafka, vas a ver logs similares a estos:
+```text
 Orchestrator ready. Waiting for commands…
 [RECV] TransactionInitiated txn=...
 [EMIT] FundsReserved …
 [EMIT] FraudChecked …
-...
+```
 
-✅ 4️⃣ Ejecutar la aplicación web
+**5️⃣ Ejecutar la aplicación web**
 
-En otra terminal:
-
+En otra terminal, levantá un servidor de Next.js:
+```bash
 npm run dev
+```
 
-Abrir 👉 http://localhost:3000/
+Por último, abrí tu navegador en: 👉 **http://localhost:3000/**
 
-✅ Completar formulario
-✅ Click en Iniciar transacción
-✅ Timeline derecho se actualiza en tiempo real 🎯
+**Para probar el sistema:**
+✅ Completá el formulario de la izquierda.
+✅ Hacé click en **"Iniciar transacción"**.
+✅ ¡Observá cómo el Timeline de la derecha recibe mis eventos de Kafka y se actualiza en tiempo real! 🎯
 
-📍Formulario izquierda – Nueva transacción
-📍Timeline derecha – Eventos Kafka en streaming
+*Nota para revisión:*
+📌 *Colocar 2 o 3 capturas de mi proyecto funcionando.*
 
-📌 Colocar 2 o 3 capturas que ya tenés donde se muestra todo funcionando
+## ✅ Conclusiones
 
-✅ Conclusiones
+A lo largo del desarrollo de este TP, logré:
+✔ Implementar con éxito una arquitectura distribuida real.
+✔ Dominar la comunicación asíncrona event-driven mediante Apache Kafka.
+✔ Resolver el requerimiento de streaming de actualizaciones en vivo al cliente empleando SSE (evitando la sobrecarga de WebSockets).
+✔ Desarrollar una interfaz de usuario limpia y responsiva que hace muy intuitivo monitorear un proceso bancario en tiempo de ejecución.
+✔ Manejar flujos de compensación (Aprobación/Reversión automática) en base al análisis de riesgo ficticio.
 
-✔ Se realizó con éxito una arquitectura distribuida real
-✔ Comunicación event-driven mediante Kafka
-✔ Streaming de actualizaciones con SSE sin necesidad de WebSockets
-✔ UI intuitiva que permite observar los procesos bancarios en tiempo real
-✔ Aprobación/reversión automática basada en análisis de fraude
+---
 
-✅ Autor
-
-Luca Saboredo
+### **Autor**
+**Luca Saboredo**
 Licenciatura en Sistemas – UADER
 2025
